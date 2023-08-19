@@ -34,6 +34,7 @@ function initTTTranslator(conf) {
                         textKey = htmlEl.getAttribute('tt')
                         if (ttTexts[textKey]) {
                             htmlEl.innerHTML = ttTexts[textKey]
+                            console.log(htmlEl.innerHTML);
                         } else {
                             createNewTranslation(textKey)
                         }
