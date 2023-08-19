@@ -28,13 +28,11 @@ function initTTTranslator(conf) {
             
                     // Replace texts in HTML
                     let htmlEls = document.querySelectorAll('[tt]');
-                    console.log(htmlEls);
                     let textKey = null
                     for (let htmlEl of htmlEls) {
                         textKey = htmlEl.getAttribute('tt')
                         if (ttTexts[textKey]) {
                             htmlEl.innerHTML = ttTexts[textKey]
-                            console.log(htmlEl.innerHTML);
                         } else {
                             createNewTranslation(textKey)
                         }
