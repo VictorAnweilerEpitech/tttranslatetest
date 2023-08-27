@@ -7,6 +7,7 @@ function initTTTranslator(conf) {
     var lang = null
     var baseUrl = 'http://localhost:3000'
     let projectId = conf.key
+    let ttSelector = conf.selector || '.tt'
 
     // Set lang
     if (localStorage.getItem('tt-lang')) {
@@ -18,6 +19,17 @@ function initTTTranslator(conf) {
     // Get default texts
     let getTexts = () => {
         if (projectId) {
+            // Add all attribute keys
+            let htmlEls = document.querySelectorAll(ttSelector);
+            let textKey = null
+            for (let htmlEl of htmlEls) {
+                if (!htmlEl.getAttribute('tttranslate-key')) {
+                    textKey = htmlEl.innerHTML
+                    htmlEl.setAttribute('tttranslate-key', textKey)
+                    htmlEl.innerHTML = ''
+                }
+            }
+
             const xhrGetText = new XMLHttpRequest();
             xhrGetText.open("GET", baseUrl + "/api/translate/texts?id=" + projectId + "&lang=" + lang, true);
             xhrGetText.send();
@@ -25,16 +37,16 @@ function initTTTranslator(conf) {
             xhrGetText.onload = () => {
                 if (xhrGetText.readyState == 4 && xhrGetText.status == 200) {
                     const ttTexts = xhrGetText.response;
-            
-                    // Replace texts in HTML
-                    let htmlEls = document.querySelectorAll('[tt]');
+
+                    // Replace all text by new value
+                    let htmlEls = document.querySelectorAll('[tttranslate-key]');
                     let textKey = null
                     for (let htmlEl of htmlEls) {
-                        textKey = htmlEl.getAttribute('tt')
+                        textKey = htmlEl.getAttribute('tttranslate-key')
                         if (ttTexts[textKey]) {
                             htmlEl.innerHTML = ttTexts[textKey]
                         } else {
-                            createNewTranslation(textKey)
+                            createNewTranslation(textKey, htmlEl)
                         }
                     }
                 } else {
@@ -46,7 +58,7 @@ function initTTTranslator(conf) {
     getTexts()
 
     // Create translation
-    let createNewTranslation = (newText) => {
+    let createNewTranslation = (newText, htmlEl) => {
         if (projectId) {
             var xhrNewText = new XMLHttpRequest();
             var url = baseUrl + '/api/translate/add';
@@ -59,8 +71,9 @@ function initTTTranslator(conf) {
             xhrNewText.send(JSON.stringify(params));
             xhrNewText.onreadystatechange = function() {
                 if (xhrNewText.readyState == 4 && xhrNewText.status == 200) {
+                    htmlEl.setAttribute('tttranslate-key', newText)
+
                     let response = JSON.parse(xhrNewText.response);
-                    let htmlEl = document.querySelector('[tt="' + newText + '"]');
                     htmlEl.innerHTML = response[columnName(lang)]
                 }
             }
@@ -127,7 +140,7 @@ function initTTTranslator(conf) {
                             localStorage.setItem('tt-lang', lang)
                         });
                         if (localStorage.getItem('tt-lang')) {
-                            let buttonLangOptionsEl = document.querySelector("#tt-langs-btn option[value='" + lang + "']")
+                            let buttonLangOptionsEl = document.querySelector(conf.magicBtn + " select option[value='" + lang + "']")
                             if (buttonLangOptionsEl) {
                                 buttonLangOptionsEl.setAttribute("selected", 1)
                             }
